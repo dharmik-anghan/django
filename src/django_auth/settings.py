@@ -95,7 +95,10 @@ DATABASES = {
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+    # 'DEFAULT_RENDERER_CLASSES': (
+    #     'rest_framework.renderers.JSONRenderer',    
+    # ),
 }
 
 
@@ -142,6 +145,14 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = 'account.User'
 
+# Email Config
+EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST='smtp.gmail.com'
+EMAIL_PORT=587
+EMAIL_HOST_USER=os.environ.get("EMAIL_USER")
+EMAIL_HOST_PASSWORD=os.environ.get("EMAIL_PASS")
+EMAIL_USE_TLS=True
+
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=20),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
@@ -170,8 +181,11 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
 }
 
+PASSWORD_RESET_TIMEOUT=900 # 900 sec = 15 min
+
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",
     "http://127.0.0.1:9000",
 ]
+
 
