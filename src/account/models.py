@@ -36,6 +36,10 @@ class User(AbstractBaseUser):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    follower_count = models.IntegerField(default=0)
+    following_count = models.IntegerField(default=0)
+    post_count = models.IntegerField(default=0)
+
     objects = UserManager()
 
     USERNAME_FIELD = "email"
