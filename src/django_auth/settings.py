@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "account",
     "post",
+    "follow",
 ]
 
 MIDDLEWARE = [
