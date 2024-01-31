@@ -59,11 +59,7 @@ class UserLoginView(APIView):
             )
         else:
             return Response(
-                {
-                    "errors": {
-                        "non_field_errors": ["Email or password is not valid"]
-                    }
-                },
+                {"errors": {"non_field_errors": ["Email or password is not valid"]}},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
