@@ -9,7 +9,16 @@ class UserModelAdmin(BaseUserAdmin):
     # The fields to be used in displaying the User model.
     # These override the definitions on the base UserModelAdmin
     # that reference specific fields on auth.User.
-    list_display = ["id","email", "name", "tc", "is_admin"]
+    list_display = [
+        "id",
+        "email",
+        "name",
+        "tc",
+        "is_admin",
+        "follower_count",
+        "following_count",
+        "post_count",
+    ]
     list_filter = ["is_admin"]
     fieldsets = [
         ("User Credentials", {"fields": ["email", "password"]}),
@@ -30,6 +39,7 @@ class UserModelAdmin(BaseUserAdmin):
     search_fields = ["email"]
     ordering = ["email", "id"]
     filter_horizontal = []
+    list_editable = ["is_admin"]
 
 
 # Now register the new UserModelAdmin...
