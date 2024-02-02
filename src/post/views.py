@@ -2,12 +2,19 @@ from rest_framework.views import APIView
 from account.renderers import UserRenderer
 from rest_framework.permissions import IsAuthenticated
 from follow.models import Follow
-from post.serializers import GetFeedSerializer, PostSerializer, PostCreateSerializer, PostUpdateSerializer
-from post.models import Post
+from post.serializers import (
+    GetFeedSerializer,
+    PostSerializer,
+    PostCreateSerializer,
+    PostUpdateSerializer,
+    PostImageSerializer,
+)
+from post.models import Post, PostImage
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from datetime import datetime, timezone
 from account.models import User
+from django.shortcuts import get_object_or_404
 
 # Create your views here.
 
@@ -15,7 +22,6 @@ from account.models import User
 class GetPostView(APIView):
     renderer_classes = [UserRenderer]
     permission_classes = [IsAuthenticated]
-    serializer_class = PostSerializer
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def update_post_count(self, user_id):
@@ -24,17 +30,26 @@ class GetPostView(APIView):
         user.post_count = post_count
         user.save()
 
+    @staticmethod
+    def append_image_data(serializer, image_serializer):
+        data = {}
+        data.update(serializer)
+        data.update({"images": image_serializer})
+        return data
+
     def get(self, request):
         post_id = request.query_params.get("id")
+        post = get_object_or_404(Post, id=post_id)
+        serializer = PostSerializer(post)
 
-        if post_id:
-            try:
-                post = Post.objects.get(id=post_id)
-            except Post.DoesNotExist:
-                return Response({"msg": "Post not found"}, status=404)
+        images = PostImage.objects.filter(post_id=post_id).all()
+        image_serializer = PostImageSerializer(
+            images, context={"request": request}, many=True
+        )
 
-            serializer = PostSerializer(post, context={"request": request})
-            return Response({"post": serializer.data})
+        data = self.append_image_data(serializer.data, image_serializer.data)
+
+        return Response({"post": data}, status=200)
 
     def post(self, request):
         data = request.data
@@ -44,7 +59,15 @@ class GetPostView(APIView):
         if serializer.is_valid():
             serializer.save()
             self.update_post_count(request.user.id)
-            return Response(serializer.data, status=201)
+            print(serializer.data.get("id"))
+
+            images = PostImage.objects.filter(post_id=serializer.data['id']).all()
+            image_serializer = PostImageSerializer(
+                images, context={"request": request}, many=True
+            )
+
+            data = self.append_image_data(serializer.data, image_serializer.data)
+            return Response(data, status=201)
         else:
             return Response(serializer.errors, status=400)
 
@@ -58,14 +81,20 @@ class GetPostView(APIView):
         post.updated_at = datetime.now(timezone.utc)
         post.save()
         serializer = PostUpdateSerializer(
-            post, data=data, partial=True, context={"request": request}
+            post, data=data, partial=True
         )
 
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=201)
+            images = PostImage.objects.filter(post_id=post_id).all()
+            image_serializer = PostImageSerializer(
+                images, context={"request": request}, many=True
+            )
+
+            data = self.append_image_data(serializer.data, image_serializer.data)       
+            return Response(data, status=200)
         else:
-            return Response(serializer.errors, status=400)
+            return Response(serializer.errors, status=404)
 
     def delete(self, request):
         post_id = request.query_params.get("id")
@@ -88,6 +117,9 @@ class GetPostFeedView(APIView):
         user_id = request.user.id
         users = Follow.objects.filter(followed_by=user_id).all()
         # posts=Post.objects.filter(user_id=users).all().order_by('created_at').values()
-        print(users)
         serializer = GetFeedSerializer(users, many=True, context={"request": request})
-        return Response(serializer.data)
+        post_feed = []
+        for user in serializer.data:
+            for post in user['posts']:
+                post_feed.append(post)
+        return Response(post_feed)
