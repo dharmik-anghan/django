@@ -1,7 +1,10 @@
 from rest_framework import serializers
+from comment.models import Comment
+from comment.serializers import CommentSerializer
 from follow.models import Follow
+from like.models import Like
 from post.models import Post, PostImage
-
+import random
 POST_STATUS_CHOICES = (
     ("published", "published"),
     ("private", "private"),
@@ -65,6 +68,8 @@ class GetFeedSerializer(serializers.ModelSerializer):
         images = []
         serializers = PostSerializer(posts, many=True)
         for post in posts:
+            if post.status == "draft" or post.status=="private":
+                continue
             data = {}
             serializers = PostSerializer(post)
 
@@ -73,7 +78,12 @@ class GetFeedSerializer(serializers.ModelSerializer):
                 img, context=self.context, many=True
             )
             data.update(serializers.data)
+            data.update({"following": Follow.objects.filter(followed_by=obj.followed_by.id, followed_to=post.user_id.id).exists()})
+            data.update({"liked": Like.objects.filter(user=obj.followed_by.id, post=post, comment=None, reply=None).exists()})
             data.update({"images": image_serializer.data})
+            comments = Comment.objects.filter(post=post).all()
+            comment_serializer = CommentSerializer(comments, many=True)
+            data.update({"comments" : comment_serializer.data})
             images.append(data)
         return images
 

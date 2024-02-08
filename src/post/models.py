@@ -23,7 +23,7 @@ class Post(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now_add=False, null=True, blank=True)
-    liked_count = models.IntegerField(default=0)
+    like_count = models.IntegerField(default=0)
     comment_count = models.IntegerField(default=0)
 
 

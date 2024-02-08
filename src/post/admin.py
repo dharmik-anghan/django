@@ -11,6 +11,8 @@ class PostAdmin(admin.ModelAdmin):
         "status",
         "created_at",
         "updated_at",
+        "like_count",
+        "comment_count",
     ]
     list_editable = ["status"]
 

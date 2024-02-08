@@ -1,7 +1,10 @@
 from rest_framework.views import APIView
 from account.renderers import UserRenderer
 from rest_framework.permissions import IsAuthenticated
+from comment.models import Comment
+from comment.serializers import CommentSerializer
 from follow.models import Follow
+from like.models import Like
 from post.serializers import (
     GetFeedSerializer,
     PostSerializer,
@@ -48,6 +51,23 @@ class GetPostView(APIView):
         )
 
         data = self.append_image_data(serializer.data, image_serializer.data)
+        data.update(
+            {
+                "following": Follow.objects.filter(
+                    followed_to=post.user_id.id, followed_by=request.user.id
+                ).exists()
+            }
+        )
+        data.update(
+            {
+                "liked": Like.objects.filter(
+                    user=request.user.id, post=post, comment=None, reply=None
+                ).exists()
+            }
+        )
+        comments = Comment.objects.filter(post=post).all()
+        comment_serializer = CommentSerializer(comments, many=True)
+        data.update({"comments" : comment_serializer.data})
 
         return Response({"post": data}, status=200)
 
@@ -61,7 +81,7 @@ class GetPostView(APIView):
             self.update_post_count(request.user.id)
             print(serializer.data.get("id"))
 
-            images = PostImage.objects.filter(post_id=serializer.data['id']).all()
+            images = PostImage.objects.filter(post_id=serializer.data["id"]).all()
             image_serializer = PostImageSerializer(
                 images, context={"request": request}, many=True
             )
@@ -80,9 +100,7 @@ class GetPostView(APIView):
             return Response({"msg": "Post not found"}, status=404)
         post.updated_at = datetime.now(timezone.utc)
         post.save()
-        serializer = PostUpdateSerializer(
-            post, data=data, partial=True
-        )
+        serializer = PostUpdateSerializer(post, data=data, partial=True)
 
         if serializer.is_valid():
             serializer.save()
@@ -91,7 +109,7 @@ class GetPostView(APIView):
                 images, context={"request": request}, many=True
             )
 
-            data = self.append_image_data(serializer.data, image_serializer.data)       
+            data = self.append_image_data(serializer.data, image_serializer.data)
             return Response(data, status=200)
         else:
             return Response(serializer.errors, status=404)
@@ -120,6 +138,6 @@ class GetPostFeedView(APIView):
         serializer = GetFeedSerializer(users, many=True, context={"request": request})
         post_feed = []
         for user in serializer.data:
-            for post in user['posts']:
+            for post in user["posts"]:
                 post_feed.append(post)
         return Response(post_feed)
