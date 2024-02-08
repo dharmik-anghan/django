@@ -40,7 +40,7 @@ class UserLoginSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "email", "name"]
+        exclude = ['password']
 
 
 class UserChangePasswordSerializer(serializers.Serializer):

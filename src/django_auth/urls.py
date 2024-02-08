@@ -24,4 +24,6 @@ urlpatterns = [
     path("api/user/", include("account.urls")),
     path("api/post/", include("post.urls")),
     path("api/user/follow/", include("follow.urls")),
+    path("api/user/post/comment/", include("comment.urls")),
+    path("api/user/<int:post_id>/", include("like.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
