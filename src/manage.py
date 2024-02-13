@@ -8,7 +8,7 @@ import dotenv
 def main():
     dotenv.load_dotenv()
     """Run administrative tasks."""
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "django_auth.settings")
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "instag.settings")
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
