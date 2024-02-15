@@ -26,11 +26,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-<<<<<<< HEAD:src/instag/settings.py
-ALLOWED_HOSTS = ["127.0.0.1", "localhost", "dharmikanghan.pythonanywhere.com"]
-=======
 ALLOWED_HOSTS = ['*']
->>>>>>> parent of e609a0d (Changed Database and req.txt):src/django_auth/settings.py
 
 
 # Application definition
